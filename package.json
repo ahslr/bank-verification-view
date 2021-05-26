@@ -18,16 +18,18 @@
     "test:coverage": "npm run test -- --coverage",
     "lint": "eslint . --fix"
   },
-  "dependencies": {},
-  "devDependencies": {
-    "redux": "4.0.1",
-    "react-redux": "6.0.1",
-    "react-device-detect": "1.6.2",
-    "redux-form": "8.1.0",
+  "dependencies": {
+    "@ant-design/icons": "4.2.2",
     "classnames": "2.2.6",
     "prop-types": "15.7.2",
     "react": "16.13.1",
+    "react-device-detect": "1.6.2",
+    "react-redux": "6.0.1",
     "react-svg": "11.2.2",
+    "redux": "4.0.1",
+    "redux-form": "8.1.0"
+  },
+  "devDependencies": {
     "@babel/cli": "^7.12.10",
     "@babel/core": "^7.12.10",
     "@babel/plugin-proposal-class-properties": "^7.12.1",

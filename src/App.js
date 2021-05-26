@@ -1,7 +1,6 @@
 import React, { Component } from "react";
 import { connect } from "react-redux";
 import { reduxForm, SubmissionError } from "redux-form";
-import { isMobile } from "react-device-detect";
 import { IconTitle, Button, HeaderSection } from "components";
 
 import "./App.css";
@@ -26,9 +25,7 @@ class BankVerification extends Component {
 
   componentDidUpdate(prevProps) {
     const { bankMeta } = this.props;
-    if (
-      JSON.stringify(prevProps.bankMeta) !== JSON.stringify(bankMeta)
-    ) {
+    if (JSON.stringify(prevProps.bankMeta) !== JSON.stringify(bankMeta)) {
       this.generateFormFields();
     }
   }
@@ -62,7 +59,9 @@ class BankVerification extends Component {
             formFields[key] = {
               type: "text",
               label: text,
-              placeholder: text
+              placeholder: text,
+              fullWidth: true,
+              ishorizontalfield: true
             };
             if (metaData.required) {
               formFields[key].validate = [required];
@@ -72,7 +71,9 @@ class BankVerification extends Component {
           formFields[key] = {
             type: "text",
             label: key,
-            placeholder: key
+            placeholder: key,
+            fullWidth: true,
+            ishorizontalfield: true
           };
         }
       });
@@ -84,13 +85,14 @@ class BankVerification extends Component {
         label:
           STRINGS[
             "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.BANK_NAME_LABEL"
-            ],
+          ],
         placeholder:
           STRINGS[
             "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.BANK_NAME_PLACEHOLDER"
-            ],
+          ],
         validate: [required],
-        fullWidth: isMobile
+        fullWidth: true,
+        ishorizontalfield: true
       };
       formFields.account_number = {
         type: "text",
@@ -99,22 +101,23 @@ class BankVerification extends Component {
         label:
           STRINGS[
             "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.ACCOUNT_NUMBER_LABEL"
-            ],
+          ],
         placeholder:
           STRINGS[
             "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.ACCOUNT_NUMBER_PLACEHOLDER"
-            ],
+          ],
         validate: [
           required,
           maxLength(
             50,
             STRINGS[
               "USER_VERIFICATION.BANK_ACCOUNT_FORM.VALIDATIONS.ACCOUNT_NUMBER_MAX_LENGTH"
-              ]
+            ]
           )
         ],
         maxLength: 50,
-        fullWidth: isMobile
+        fullWidth: true,
+        ishorizontalfield: true
       };
     }
     this.setState({ formFields });
@@ -166,46 +169,46 @@ class BankVerification extends Component {
           textType="title"
         />
         <form className="d-flex flex-column w-100 verification_content-form-wrapper">
-          <HeaderSection
-            stringId="USER_VERIFICATION.TITLE_BANK_ACCOUNT"
-            title={STRINGS["USER_VERIFICATION.TITLE_BANK_ACCOUNT"]}
-            iconId={iconId}
-            icon={icon}
-            openContactForm={openContactForm}
-            strings={STRINGS}
-            icons={ICONS}
-          >
-            <div className="my-2">
-              {STRINGS["USER_VERIFICATION.BANK_VERIFICATION_TEXT_1"]}
-            </div>
-            <div className="my-2">
-              {STRINGS["USER_VERIFICATION.BANK_VERIFICATION_TEXT_2"]}
-            </div>
-            <ul className="pl-4">
-              <li className="my-1">
-                {STRINGS["USER_VERIFICATION.BASE_WITHDRAWAL"]}
-              </li>
-              <li className="my-1">
-                {STRINGS["USER_VERIFICATION.BASE_DEPOSITS"]}
-              </li>
-              <li className="my-1">
-                {STRINGS["USER_VERIFICATION.WARNING.LIST_ITEM_3"]}
-              </li>
-            </ul>
-          </HeaderSection>
-          {renderFields(formFields)}
-          {error && (
-            <div className="warning_text">{getErrorLocalized(error)}</div>
-          )}
-          <div className="d-flex">
-            <div className="w-50">
+          <div className="verification-form-panel mt-3 mb-5">
+            <HeaderSection
+              stringId="USER_VERIFICATION.TITLE_BANK_ACCOUNT"
+              title={STRINGS["USER_VERIFICATION.TITLE_BANK_ACCOUNT"]}
+              openContactForm={openContactForm}
+              strings={STRINGS}
+              icons={ICONS}
+            >
+              <div className="my-2">
+                {STRINGS["USER_VERIFICATION.BANK_VERIFICATION_TEXT_1"]}
+              </div>
+              <div className="my-2">
+                {STRINGS["USER_VERIFICATION.BANK_VERIFICATION_TEXT_2"]}
+              </div>
+              <ul className="pl-4">
+                <li className="my-1">
+                  {STRINGS["USER_VERIFICATION.BASE_WITHDRAWAL"]}
+                </li>
+                <li className="my-1">
+                  {STRINGS["USER_VERIFICATION.BASE_DEPOSITS"]}
+                </li>
+                <li className="my-1">
+                  {STRINGS["USER_VERIFICATION.WARNING.LIST_ITEM_3"]}
+                </li>
+              </ul>
+            </HeaderSection>
+            {renderFields(formFields)}
+            {error && (
+              <div className="warning_text">{getErrorLocalized(error)}</div>
+            )}
+          </div>
+          <div className="d-flex justify-content-center align-items-center mt-2">
+            <div className="f-1 d-flex justify-content-end verification-buttons-wrapper">
               <Button
                 label={STRINGS["USER_VERIFICATION.GO_BACK"]}
                 onClick={this.onGoBack}
               />
             </div>
             <div className="separator" />
-            <div className="w-50">
+            <div className="f-1 verification-buttons-wrapper">
               <Button
                 label={STRINGS["SUBMIT"]}
                 type="button"

@@ -1,7 +1,8 @@
-import React, { Component } from "react";
+import React, { Component, Fragment } from "react";
 import classnames from "classnames";
 import { ReactSVG } from "react-svg";
-import { ActionNotification } from "components";
+import { ActionNotification } from "../../ActionNotification";
+import { ExclamationCircleFilled } from "@ant-design/icons";
 
 export const FieldContent = ({
   label = "",
@@ -13,32 +14,72 @@ export const FieldContent = ({
   contentClassName = "",
   hideCheck = false,
   outlineClassName = "",
-  staticIcons: STATIC_ICONS = {}
+  staticIcons: STATIC_ICONS = {},
+  displayError,
+  error,
+  ishorizontalfield = false,
+  dateFieldClassName,
+  warning,
+  getErrorLocalized
 }) => {
   return (
-    <div className={classnames("field-content")}>
-      <div className="d-flex">
-        {label && <div className="field-label">{label}</div>}
+    <div>
+      <div className={classnames({ "field-label-wrapper": ishorizontalfield })}>
+        <div className="d-flex">
+          {label && (
+            <div className="field-label">
+              {label}
+              {warning && (
+                <div className="d-flex align-items-baseline field_warning_wrapper">
+                  <ExclamationCircleFilled className="field_warning_icon" />
+                  <div className="field_warning_text">{warning}</div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        <div className={classnames("field-content")}>
+          <div
+            className={classnames(
+              "field-children",
+              { valid, custom: hideUnderline },
+              contentClassName,
+              {
+                "input-box-field":
+                  ishorizontalfield && dateFieldClassName === ""
+              }
+            )}
+          >
+            {children}
+            {!hideCheck && valid && hasValue && (
+              <ReactSVG
+                src={STATIC_ICONS.BLACK_CHECK}
+                className="field-valid"
+              />
+            )}
+          </div>
+          {!hideUnderline && (
+            <span
+              className={classnames("field-content-outline", outlineClassName, {
+                focused
+              })}
+            />
+          )}
+        </div>
       </div>
-      <div
-        className={classnames(
-          "field-children",
-          { valid, custom: hideUnderline },
-          contentClassName
-        )}
-      >
-        {children}
-        {!hideCheck && valid && hasValue && (
-          <ReactSVG src={STATIC_ICONS.BLACK_CHECK} className="field-valid" />
-        )}
+      <div className="field-label-wrapper">
+        {ishorizontalfield ? (
+          <Fragment>
+            <div className="field-label"></div>
+            <FieldError
+              displayError={displayError}
+              error={error}
+              staticIcons={STATIC_ICONS}
+              getErrorLocalized={getErrorLocalized}
+            />
+          </Fragment>
+        ) : null}
       </div>
-      {!hideUnderline && (
-        <span
-          className={classnames("field-content-outline", outlineClassName, {
-            focused
-          })}
-        />
-      )}
     </div>
   );
 };
@@ -55,13 +96,7 @@ export const FieldError = ({
       "field-error-hidden": !displayError
     })}
   >
-    {error && (
-      <img
-        src={STATIC_ICONS.RED_WARNING}
-        className="field-error-icon"
-        alt="error"
-      />
-    )}
+    {error && <ExclamationCircleFilled className="field_warning_icon" />}
     {error && (
       <span className="field-error-text">{getErrorLocalized(error)}</span>
     )}
@@ -86,7 +121,9 @@ class FieldWrapper extends Component {
       hideCheck = false,
       outlineClassName = "",
       getErrorLocalized = error => error,
-      staticIcons: STATIC_ICONS = {}
+      staticIcons: STATIC_ICONS = {},
+      warning,
+      ishorizontalfield
     } = this.props;
 
     const displayError = !(active || focused) && (visited || touched) && error;
@@ -103,6 +140,7 @@ class FieldWrapper extends Component {
         <FieldContent
           stringId={stringId}
           label={label}
+          warning={warning}
           valid={!invalid}
           hasValue={hasValue}
           focused={active || focused}
@@ -110,7 +148,12 @@ class FieldWrapper extends Component {
           hideCheck={hideCheck}
           outlineClassName={outlineClassName}
           onClick={onClick}
+          displayError={displayError}
+          error={error}
+          ishorizontalfield={ishorizontalfield}
+          dateFieldClassName={className}
           staticIcons={STATIC_ICONS}
+          getErrorLocalized={getErrorLocalized}
         >
           {children}
           {notification && typeof notification === "object" && (
@@ -123,12 +166,14 @@ class FieldWrapper extends Component {
             />
           )}
         </FieldContent>
-        <FieldError
-          displayError={displayError}
-          error={error}
-          staticIcons={STATIC_ICONS}
-          getErrorLocalized={getErrorLocalized}
-        />
+        {!ishorizontalfield ? (
+          <FieldError
+            displayError={displayError}
+            error={error}
+            staticIcons={STATIC_ICONS}
+            getErrorLocalized={getErrorLocalized}
+          />
+        ) : null}
       </div>
     );
   }
