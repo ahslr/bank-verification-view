@@ -24,49 +24,99 @@ class BankVerification extends Component {
     this.generateFormFields();
   }
 
-  generateFormFields = () => {
-    const { strings: STRINGS = {} } = this.props;
-    const formFields = {};
+  componentDidUpdate(prevProps) {
+    const { bankMeta } = this.props;
+    if (
+      JSON.stringify(prevProps.bankMeta) !== JSON.stringify(bankMeta)
+    ) {
+      this.generateFormFields();
+    }
+  }
 
-    formFields.bank_name = {
-      type: "text",
-      stringId:
-        "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.BANK_NAME_LABEL,USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.BANK_NAME_PLACEHOLDER",
-      label:
-        STRINGS[
-          "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.BANK_NAME_LABEL"
-        ],
-      placeholder:
-        STRINGS[
-          "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.BANK_NAME_PLACEHOLDER"
-        ],
-      validate: [required],
-      fullWidth: isMobile
-    };
-    formFields.account_number = {
-      type: "text",
-      stringId:
-        "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.ACCOUNT_NUMBER_LABEL,USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.ACCOUNT_NUMBER_PLACEHOLDER,USER_VERIFICATION.BANK_ACCOUNT_FORM.VALIDATIONS.ACCOUNT_NUMBER_MAX_LENGTH",
-      label:
-        STRINGS[
-          "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.ACCOUNT_NUMBER_LABEL"
-        ],
-      placeholder:
-        STRINGS[
-          "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.ACCOUNT_NUMBER_PLACEHOLDER"
-        ],
-      validate: [
-        required,
-        maxLength(
-          50,
+  generateFormFields = () => {
+    const { strings: STRINGS = {}, bankMeta = {} } = this.props;
+    const formFields = {};
+    if (bankMeta.public_meta && Object.keys(bankMeta.public_meta).length) {
+      let publicMeta = Object.keys(bankMeta.public_meta);
+      publicMeta.forEach(key => {
+        const metaData = bankMeta.public_meta[key];
+        if (typeof metaData === "object") {
+          let text = key;
+          if (key.includes("_")) {
+            text = key.replace(/_/g, " ");
+            text = text.split(" ");
+            text =
+              text[0].replace(/^./, function (str) {
+                return str.toUpperCase();
+              }) +
+              " " +
+              text[1].replace(/^./, function (str) {
+                return str.toUpperCase();
+              });
+          } else {
+            text = text.replace(/^./, function (str) {
+              return str.toUpperCase();
+            });
+          }
+          if (metaData.value) {
+            formFields[key] = {
+              type: "text",
+              label: text,
+              placeholder: text
+            };
+            if (metaData.required) {
+              formFields[key].validate = [required];
+            }
+          }
+        } else {
+          formFields[key] = {
+            type: "text",
+            label: key,
+            placeholder: key
+          };
+        }
+      });
+    } else {
+      formFields.bank_name = {
+        type: "text",
+        stringId:
+          "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.BANK_NAME_LABEL,USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.BANK_NAME_PLACEHOLDER",
+        label:
           STRINGS[
-            "USER_VERIFICATION.BANK_ACCOUNT_FORM.VALIDATIONS.ACCOUNT_NUMBER_MAX_LENGTH"
-          ]
-        )
-      ],
-      maxLength: 50,
-      fullWidth: isMobile
-    };
+            "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.BANK_NAME_LABEL"
+            ],
+        placeholder:
+          STRINGS[
+            "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.BANK_NAME_PLACEHOLDER"
+            ],
+        validate: [required],
+        fullWidth: isMobile
+      };
+      formFields.account_number = {
+        type: "text",
+        stringId:
+          "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.ACCOUNT_NUMBER_LABEL,USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.ACCOUNT_NUMBER_PLACEHOLDER,USER_VERIFICATION.BANK_ACCOUNT_FORM.VALIDATIONS.ACCOUNT_NUMBER_MAX_LENGTH",
+        label:
+          STRINGS[
+            "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.ACCOUNT_NUMBER_LABEL"
+            ],
+        placeholder:
+          STRINGS[
+            "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.ACCOUNT_NUMBER_PLACEHOLDER"
+            ],
+        validate: [
+          required,
+          maxLength(
+            50,
+            STRINGS[
+              "USER_VERIFICATION.BANK_ACCOUNT_FORM.VALIDATIONS.ACCOUNT_NUMBER_MAX_LENGTH"
+              ]
+          )
+        ],
+        maxLength: 50,
+        fullWidth: isMobile
+      };
+    }
     this.setState({ formFields });
   };
 
