@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { connect } from "react-redux";
 import { reduxForm, SubmissionError } from "redux-form";
 import { IconTitle, Button, HeaderSection } from "components";
+import axios from "axios";
 
 import "./App.css";
 
@@ -24,108 +25,170 @@ class BankVerification extends Component {
   }
 
   componentDidUpdate(prevProps) {
-    const { bankMeta } = this.props;
-    if (JSON.stringify(prevProps.bankMeta) !== JSON.stringify(bankMeta)) {
+    const {
+      bankMeta,
+      router: {
+        location: { query: { type } = {} }
+      }
+    } = this.props;
+
+    if (
+      JSON.stringify(prevProps.bankMeta) !== JSON.stringify(bankMeta) ||
+      type !== prevProps.router.location.query.type
+    ) {
       this.generateFormFields();
     }
   }
 
   generateFormFields = () => {
-    const { strings: STRINGS = {}, bankMeta = {} } = this.props;
+    const {
+      strings: STRINGS = {},
+      bankMeta = {},
+      router: {
+        location: { query: { type } = {} }
+      }
+    } = this.props;
     const formFields = {};
-    if (bankMeta.public_meta && Object.keys(bankMeta.public_meta).length) {
-      let publicMeta = Object.keys(bankMeta.public_meta);
-      publicMeta.forEach(key => {
-        const metaData = bankMeta.public_meta[key];
-        if (typeof metaData === "object") {
-          let text = key;
-          if (key.includes("_")) {
-            text = key.replace(/_/g, " ");
-            text = text.split(" ");
-            text =
-              text[0].replace(/^./, function (str) {
-                return str.toUpperCase();
-              }) +
-              " " +
-              text[1].replace(/^./, function (str) {
+
+    if (type === "bank") {
+      if (bankMeta.public_meta && Object.keys(bankMeta.public_meta).length) {
+        let publicMeta = Object.keys(bankMeta.public_meta);
+        publicMeta.forEach(key => {
+          const metaData = bankMeta.public_meta[key];
+          if (typeof metaData === "object") {
+            let text = key;
+            if (key.includes("_")) {
+              text = key.replace(/_/g, " ");
+              text = text.split(" ");
+              text =
+                text[0].replace(/^./, function (str) {
+                  return str.toUpperCase();
+                }) +
+                " " +
+                text[1].replace(/^./, function (str) {
+                  return str.toUpperCase();
+                });
+            } else {
+              text = text.replace(/^./, function (str) {
                 return str.toUpperCase();
               });
+            }
+            if (metaData.value) {
+              formFields[key] = {
+                type: "text",
+                label: text,
+                placeholder: text,
+                fullWidth: true,
+                ishorizontalfield: true
+              };
+              if (metaData.required) {
+                formFields[key].validate = [required];
+              }
+            }
           } else {
-            text = text.replace(/^./, function (str) {
-              return str.toUpperCase();
-            });
-          }
-          if (metaData.value) {
             formFields[key] = {
               type: "text",
-              label: text,
-              placeholder: text,
+              label: key,
+              placeholder: key,
               fullWidth: true,
               ishorizontalfield: true
             };
-            if (metaData.required) {
-              formFields[key].validate = [required];
-            }
           }
-        } else {
-          formFields[key] = {
-            type: "text",
-            label: key,
-            placeholder: key,
-            fullWidth: true,
-            ishorizontalfield: true
-          };
-        }
-      });
-    } else {
-      formFields.bank_name = {
+        });
+      } else {
+        formFields.bank_name = {
+          type: "text",
+          stringId:
+            "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.BANK_NAME_LABEL,USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.BANK_NAME_PLACEHOLDER",
+          label:
+            STRINGS[
+              "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.BANK_NAME_LABEL"
+            ],
+          placeholder:
+            STRINGS[
+              "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.BANK_NAME_PLACEHOLDER"
+            ],
+          validate: [required],
+          fullWidth: true,
+          ishorizontalfield: true
+        };
+        formFields.account_number = {
+          type: "text",
+          stringId:
+            "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.ACCOUNT_NUMBER_LABEL,USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.ACCOUNT_NUMBER_PLACEHOLDER,USER_VERIFICATION.BANK_ACCOUNT_FORM.VALIDATIONS.ACCOUNT_NUMBER_MAX_LENGTH",
+          label:
+            STRINGS[
+              "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.ACCOUNT_NUMBER_LABEL"
+            ],
+          placeholder:
+            STRINGS[
+              "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.ACCOUNT_NUMBER_PLACEHOLDER"
+            ],
+          validate: [
+            required,
+            maxLength(
+              50,
+              STRINGS[
+                "USER_VERIFICATION.BANK_ACCOUNT_FORM.VALIDATIONS.ACCOUNT_NUMBER_MAX_LENGTH"
+              ]
+            )
+          ],
+          maxLength: 50,
+          fullWidth: true,
+          ishorizontalfield: true
+        };
+      }
+    } else if (type === "osko") {
+      formFields.pay_id_email = {
         type: "text",
-        stringId:
-          "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.BANK_NAME_LABEL,USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.BANK_NAME_PLACEHOLDER",
-        label:
-          STRINGS[
-            "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.BANK_NAME_LABEL"
-          ],
-        placeholder:
-          STRINGS[
-            "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.BANK_NAME_PLACEHOLDER"
-          ],
+        label: "Osko account name (Pay ID account name)",
+        placeholder: "Account name",
         validate: [required],
         fullWidth: true,
         ishorizontalfield: true
       };
-      formFields.account_number = {
+      formFields.pay_id_account_name = {
         type: "text",
-        stringId:
-          "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.ACCOUNT_NUMBER_LABEL,USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.ACCOUNT_NUMBER_PLACEHOLDER,USER_VERIFICATION.BANK_ACCOUNT_FORM.VALIDATIONS.ACCOUNT_NUMBER_MAX_LENGTH",
-        label:
-          STRINGS[
-            "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.ACCOUNT_NUMBER_LABEL"
-          ],
-        placeholder:
-          STRINGS[
-            "USER_VERIFICATION.BANK_ACCOUNT_FORM.FORM_FIELDS.ACCOUNT_NUMBER_PLACEHOLDER"
-          ],
-        validate: [
-          required,
-          maxLength(
-            50,
-            STRINGS[
-              "USER_VERIFICATION.BANK_ACCOUNT_FORM.VALIDATIONS.ACCOUNT_NUMBER_MAX_LENGTH"
-            ]
-          )
-        ],
-        maxLength: 50,
+        label: "Email",
+        placeholder: "Email",
+        validate: [required],
         fullWidth: true,
         ishorizontalfield: true
       };
     }
+
     this.setState({ formFields });
   };
 
+  verifyBankData = data => {
+    const {
+      verifyBankData = () => {},
+      token,
+      plugin_url: PLUGIN_URL,
+      router: {
+        location: { query: { type } = {} }
+      }
+    } = this.props;
+
+    if (type === "osko") {
+      return axios({
+        url: `${PLUGIN_URL}/plugins/aussie-bank/user`,
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`
+        },
+        data: {
+          ...data,
+          bank_name: "pay id"
+        }
+      });
+    } else {
+      return verifyBankData(data);
+    }
+  };
+
   handleSubmit = ({ ...rest }) => {
-    const { verifyBankData = () => {} } = this.props;
-    return verifyBankData(rest)
+    return this.verifyBankData(rest)
       .then(({ data }) => {
         this.props.moveToNextStep("bank", {
           bank_data: data
