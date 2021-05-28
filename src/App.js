@@ -21,7 +21,14 @@ class BankVerification extends Component {
   };
 
   componentDidMount() {
+    const {
+      router: {
+        location: { query: { type } = {} }
+      }
+    } = this.props;
+
     this.generateFormFields();
+    this.updatePath('initial_bank_tab', type);
   }
 
   componentDidUpdate(prevProps) {
@@ -37,8 +44,19 @@ class BankVerification extends Component {
       type !== prevProps.router.location.query.type
     ) {
       this.generateFormFields();
+      this.updatePath('initial_bank_tab', type);
     }
   }
+
+  updatePath = (key, value) => {
+    const {
+      router,
+      router: {
+        location: { pathname, query = {} }
+      }
+    } = this.props;
+    router.push({ pathname, query: { ...query, [key]: value } });
+  };
 
   generateFormFields = () => {
     const {
